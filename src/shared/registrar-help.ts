@@ -50,6 +50,29 @@ export const REGISTRAR_HELP: Record<RegistrarName, RegistrarHelp> = {
     },
   },
 
+  above: {
+    summary:
+      'An API key issued by Above.com — there is no self-service key page, so ' +
+      'contact your account manager or support to request one. It is sent as a ' +
+      'Bearer token. Above.com has no sandbox, so every change acts on your live ' +
+      'account and balance. Availability checks, auto-renew, DNS records and ' +
+      'contact edits aren’t available through the API.',
+    links: [
+      {
+        label: 'Request API access',
+        url: 'https://www.above.com/registrar/api-request.html',
+      },
+      {
+        label: 'Registrar API manual',
+        url: 'https://support.above.com/portfolio-manager-manual#registrar-api',
+      },
+    ],
+    fields: {
+      apiKey:
+        'Issued by Above.com support (not self-service); sent as a Bearer token.',
+    },
+  },
+
   cloudflare: {
     summary:
       'A user API token with the account-level Registrar permission (Read ' +

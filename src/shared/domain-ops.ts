@@ -34,6 +34,10 @@ const KNOWN_GAPS: Partial<
             op.forwards.some((f) => f.host !== '@' || f.type !== 'permanent'))
         ? '101domain supports one permanent URL forwarding rule for the domain root.'
         : null,
+  above: (op) =>
+    op.kind === 'autoRenew'
+      ? 'Above.com’s API exposes auto-renew read-only — change it in your Above.com account.'
+      : null,
   cloudflare: (op) =>
     op.kind === 'autoRenew' ||
     op.kind === 'lock' ||
