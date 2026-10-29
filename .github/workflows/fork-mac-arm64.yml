@@ -1,0 +1,100 @@
+name: Fork · macOS arm64 build
+
+# FORK-ONLY. Not for upstream — this file lives on the fork's default branch and
+# must never be part of a PR to aoxborrow/dombot.
+#
+# Builds an Apple Silicon (arm64) DomBot from this fork's feature branch against
+# our patched registrar-client fork (the Above.com connector), which DomBot
+# depends on via `file:../registrar-client`. The upstream release.yml can't do
+# this: it runs a 4-way matrix and a plain `npm ci` with no sibling checkout.
+#
+# Run it: Actions → "Fork · macOS arm64 build" → Run workflow (branch: main).
+# The defaults build above-registrar + above-connector. Download the
+# `dombot-mac-arm64` artifact from the finished run. It's ad-hoc signed (no Apple
+# secrets needed), so on first launch right-click the app → Open to get past
+# Gatekeeper.
+
+on:
+  workflow_dispatch:
+    inputs:
+      dombot_ref:
+        description: 'dombot fork branch to build'
+        default: above-registrar
+        type: string
+      registrar_client_ref:
+        description: 'registrar-client fork branch to build against'
+        default: above-connector
+        type: string
+
+jobs:
+  build:
+    runs-on: macos-14 # Apple Silicon
+    steps:
+      # Two sibling checkouts under the workspace so dombot's
+      # `file:../registrar-client` dependency resolves exactly as it does locally.
+      - name: Check out dombot (this fork) into dombot/
+        uses: actions/checkout@v7
+        with:
+          ref: ${{ inputs.dombot_ref }}
+          path: dombot
+
+      - name: Check out registrar-client fork into registrar-client/
+        uses: actions/checkout@v7
+        with:
+          repository: glais/registrar-client
+          ref: ${{ inputs.registrar_client_ref }}
+          path: registrar-client
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+
+      # Build the library first — dombot links to its built dist/.
+      - name: Build registrar-client (Above connector)
+        working-directory: registrar-client
+        run: npm ci && npm run build
+
+      - name: Install dombot deps
+        working-directory: dombot
+        run: npm ci
+
+      - name: Build the app (arm64, ad-hoc signed)
+        working-directory: dombot
+        run: npm run make -- --arch=arm64
+
+      # Wrap the packaged .app into a drag-to-Applications .dmg with hdiutil
+      # (built into macOS), the same way the upstream release workflow does.
+      - name: Assemble .dmg
+        working-directory: dombot
+        shell: bash
+        run: |
+          set -euo pipefail
+          VERSION=$(node -p "require('./package.json').version")
+          APP="out/DomBot-darwin-arm64/DomBot.app"
+          test -d "$APP" || { echo "::error::app not found at $APP"; ls -R out | head -40; exit 1; }
+          STAGE="$(mktemp -d)"
+          cp -R "$APP" "$STAGE/"
+          ln -s /Applications "$STAGE/Applications"
+          mkdir -p out/dmg
+          hdiutil create -volname "DomBot" -srcfolder "$STAGE" -ov -format UDZO \
+            "out/dmg/DomBot-${VERSION}-mac-arm64.dmg"
+          rm -rf "$STAGE"
+
+      - name: Collect artifacts
+        working-directory: dombot
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p dist
+          for d in out/make out/dmg; do
+            [ -d "$d" ] && find "$d" -type f \( -name '*.dmg' -o -name '*.zip' \) -exec cp {} dist/ \;
+          done
+          echo "Collected:" && ls -la dist
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: dombot-mac-arm64
+          path: dombot/dist/*
+          if-no-files-found: error
