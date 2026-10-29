@@ -91,12 +91,6 @@ jobs:
       matrix:
         include:
           - { os: macos-14, platform: mac, arch: arm64 } # Apple Silicon
-          # Intel: cross-built on the arm64 runner (macos-13 Intel runners queue
-          # unreliably and are being retired). Safe here — the app has no native
-          # modules, so electron-forge just packages the x64 Electron.
-          - { os: macos-14, platform: mac, arch: x64 }
-          - { os: windows-latest, platform: win, arch: x64 }
-          - { os: ubuntu-latest, platform: linux, arch: x64 }
     runs-on: ${{ matrix.os }}
     # Job-level so it's visible to the signing step's `if`. When this secret is
     # unset, macOS signing is skipped and the build falls back to ad-hoc.
