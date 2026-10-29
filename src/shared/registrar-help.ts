@@ -219,4 +219,21 @@ export const REGISTRAR_HELP: Record<RegistrarName, RegistrarHelp> = {
     ],
     fields: {},
   },
+
+  unstoppable: {
+    summary:
+      'An API key (`ud_mcp_…`) from Account Settings → Advanced → MCP API Key. It ' +
+      'covers both ICANN and web3 domains. DomBot can list your portfolio and manage ' +
+      'DNS, nameservers, auto-renew and URL forwarding; buying, renewing, transfers, ' +
+      'lock and WHOIS privacy aren’t available through the API.',
+    links: [
+      {
+        label: 'Account Settings',
+        url: 'https://unstoppabledomains.com/manage/account',
+      },
+    ],
+    fields: {
+      apiKey: 'Found under Account Settings › Advanced › MCP API Key.',
+    },
+  },
 };

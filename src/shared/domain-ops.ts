@@ -55,6 +55,10 @@ const KNOWN_GAPS: Partial<
       : op.kind === 'urlForwarding'
         ? 'GoDaddy forwarding needs a customer ID and legacy key the app no longer collects.'
         : null,
+  unstoppable: (op) =>
+    op.kind === 'lock' || op.kind === 'privacy' || op.kind === 'renew'
+      ? 'Unstoppable’s API doesn’t offer this — manage it from your Unstoppable Domains account.'
+      : null,
 };
 
 // Registrars whose API doesn't report WHOIS privacy, so the library's `false`
