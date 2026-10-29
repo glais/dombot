@@ -87,9 +87,10 @@ jobs:
         run: |
           set -euo pipefail
           mkdir -p dist
-          for d in out/make out/dmg; do
-            [ -d "$d" ] && find "$d" -type f \( -name '*.dmg' -o -name '*.zip' \) -exec cp {} dist/ \;
-          done
+          # Only the .dmg — the maker-zip build is the same app again, used only by
+          # the in-app updater (which doesn't work on this ad-hoc-signed fork build),
+          # so shipping it just doubles the download.
+          [ -d out/dmg ] && find out/dmg -type f -name '*.dmg' -exec cp {} dist/ \;
           echo "Collected:" && ls -la dist
 
       - name: Upload artifact
